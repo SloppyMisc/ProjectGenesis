@@ -21,6 +21,7 @@ function findhealthbarsize(curhealth,maxhealth) --size is 150
 	return .8*multi
 end
 
+
 function changevisible(thing,isa,bool)
 	for i,v in ipairs(thing:GetChildren()) do
 		if v:IsA(isa) then
@@ -37,16 +38,6 @@ function dcfenv(str)
 	end
 end
 
-function _G.nickname(pokemon)
-	local success, canLocalUserChat = pcall(function()
-		return game:GetService("TextChatService"):CanUserChatAsync(game.Players.LocalPlayer.UserId)
-	end)
-	if pokemon:FindFirstChild("Nickname") and success and canLocalUserChat  then
-		return pokemon:FindFirstChild("Nickname").Value
-	else
-		return pokemon.Name
-	end
-end
 function bigC(bool,partys)
 	if bool == true then
 		partys.Bottom.Line1.Visible = false
@@ -65,7 +56,12 @@ function bigC(bool,partys)
 	end
 end
 
+local Sound1 = Instance.new("Sound",script.Parent)
+Sound1.SoundId = "http://www.roblox.com/asset/?id=290841329"
+local Sound2 = Instance.new("Sound",script.Parent)
+Sound2.SoundId = "http://www.roblox.com/asset/?id=318763788"
 local Math = require(game.ReplicatedStorage:WaitForChild("Functions").Math)
+
 local ItemTab = require(game.ReplicatedStorage:WaitForChild("Information"):WaitForChild("Items"))
 function boxupdate(pokemon,box,Party,pokeout,battle,var)
 	dcfenv("Stat")
@@ -109,6 +105,7 @@ function boxupdate(pokemon,box,Party,pokeout,battle,var)
 		box.Health.BackgroundColor3 = Color3.new(204/255,204/255,0)
 	elseif  box.Health.Size.X.Scale < .2 and  box.Health.Size.X.Scale > 0 then
 		box.Health.BackgroundColor3 = Color3.new(170/255,0,0)
+		box.active.Image = Sprites["Active"]
 	end
 	if pokemon.Status.Value ~= "" then
 		box.Status.Text = _G.Tables["Status"][pokemon.Status.Value][1]
@@ -119,20 +116,21 @@ function boxupdate(pokemon,box,Party,pokeout,battle,var)
 		box.Status.Visible = false
 	end
 	if  pokemon.Status.Value == "Faint" then
-		box.BackgroundColor3 = Color3.new(90/255,0,0)
+		box.ImageColor3 = Color3.new(90/255,0,0)
 	end
+
 	getfenv()["Event"..pokemon.PartyPosition.Value] = box.MouseButton1Down:Connect(function()
+		Sound1:Play()
 		pokemonderp  = pokemon
 		turninactive(partyscreen)
-		box.active.Image = Sprites["Active"]
 		if pokemonderp.Status.Value ~= "Faint" then
 			box.ImageColor3 = Color3.new(105/255, 129/255, 148/255)
 		else
 			box.ImageColor3 = Color3.new(50/255,0,0)
 		end	
 		bigC(false,box.Parent)
-		box.Parent.Bottom.dialog.Text = "Currently Selected: ".._G.nickname(pokemonderp)
-		partyscreen.Bottom.dialog.DropShadow.Text = partyscreen.Bottom.dialog.Text
+		box.Parent.Bottom.dialog.Text  = "Currently Selected: ".._G.nickname(pokemonderp)
+		box.Parent.Bottom.dialog.DropShadow.Text = box.Parent.Bottom.dialog.Text
 		if var == "Cancel" then
 			box.Parent.Bottom.Cancel.Visible = false
 		end
@@ -140,34 +138,36 @@ function boxupdate(pokemon,box,Party,pokeout,battle,var)
 		dcfenv("Switch")
 		getfenv()["Stat"..pokemonderp.PartyPosition.Value] = box.Parent.Bottom.Stats.MouseButton1Down:Connect(function()
 			local blah = nil
+			Sound2:Play()
 			box.Parent.Visible = false
-			blah = _G.StatScreen(pokemonderp,"PVP",pokeout,var)
+			blah = _G.StatScreen(pokemonderp,true,pokeout,var)
 			repeat task.wait() until blah ~= nil 
 			pokemonderp = blah
-			box.Parent.Bottom.dialog.Text =  "Currently Selected:".._G.nickname(pokemonderp)
-			partyscreen.Bottom.dialog.DropShadow.Text = partyscreen.Bottom.dialog.Text
+			box.Parent.Bottom.dialog.Text =  "Currently Selected: ".._G.nickname(pokemonderp)
+			box.Parent.Bottom.dialog.DropShadow.Text = box.Parent.Bottom.dialog.Text
 			turninactive(partyscreen)
 			if pokemonderp.Status.Value ~= "Faint" then
-				partyscreen["Pokemon"..pokemonderp.PartyPosition.Value].BackgroundColor3 = Color3.new(105/255, 129/255, 148/255)
+				partyscreen["Pokemon"..pokemonderp.PartyPosition.Value].ImageColor3 = Color3.new(105/255, 129/255, 148/255)
 			else
-				partyscreen["Pokemon"..pokemonderp.PartyPosition.Value].BackgroundColor3 = Color3.new(50/255,0,0)
+				partyscreen["Pokemon"..pokemonderp.PartyPosition.Value].ImageColor3 = Color3.new(50/255,0,0)
 			end			
 			partyscreen["Pokemon"..pokemonderp.PartyPosition.Value].active.Image = Sprites["Active"]
 		end)
 
 		getfenv()["Switch"..pokemonderp.PartyPosition.Value] = box.Parent.Bottom.Switch.MouseButton1Down:Connect(function()
+			Sound2:Play()
 			if pokemonderp == pokeout then
 				box.Parent.Bottom.dialog.Text = pokeout.Name.." is already out!"
-				partyscreen.Bottom.dialog.DropShadow.Text = partyscreen.Bottom.dialog.Text
+				box.Parent.Bottom.dialog.DropShadow.Text = box.Parent.Bottom.dialog.Text
 			elseif pokemonderp.Status.Value == "Faint" or pokemonderp.CurrentHP.Value == 0 then
 				box.Parent.Bottom.dialog.Text = "You can't send out a fainted Pokemon!"
-				partyscreen.Bottom.dialog.DropShadow.Text = partyscreen.Bottom.dialog.Text
+				box.Parent.Bottom.dialog.DropShadow.Text = box.Parent.Bottom.dialog.Text
 			else
 				dcfenv("Stat")
 				dcfenv("Switch")
 				dcfenv("Event")
-				--pokeout.PartyPosition.Value = pokemonderp.PartyPosition.Value
-				--pokemonderp.PartyPosition.Value = 1
+				pokeout.PartyPosition.Value = pokemonderp.PartyPosition.Value
+				pokemonderp.PartyPosition.Value = 1
 				pokemonswitch = pokemonderp
 			end
 
@@ -176,8 +176,9 @@ function boxupdate(pokemon,box,Party,pokeout,battle,var)
 	box.Visible = true
 end
 
-_G["PVPParty"] = function(pokeout,party,var)
-	local battle = game.Players.LocalPlayer.PlayerGui:WaitForChild("Main").PvPBattle
+
+
+_G["PartyBattle"] = function(pokeout,battle,var)
 	battle.Visible = false
 	derp = true
 	dcfenv("Event")
@@ -186,7 +187,13 @@ _G["PVPParty"] = function(pokeout,party,var)
 	pokemonswitch = nil
 	if bigcancel ~= nil then bigcancel:disconnect() end
 	if smallcancel ~= nil then smallcancel:disconnect() end
-	partyscreen = game.Players.LocalPlayer.PlayerGui:WaitForChild("Main").PVPParty
+	partyscreen = game.Players.LocalPlayer.PlayerGui:WaitForChild("Main").BlackScreen.Party
+	--if game.Players.LocalPlayer:FindFirstChild("PokemonPartyBackup") then
+	--	party = game.Players.LocalPlayer.PokemonPartyBackup
+	--elseif game.Players.LocalPlayer:FindFirstChild("PokemonParty") then
+	--	party = game.Players.LocalPlayer.PokemonParty
+	--end
+	party = game.Players.LocalPlayer.PokemonParty
 	turninactive(partyscreen)
 	for i,v in ipairs(partyscreen:GetChildren()) do
 		if v:IsA("ImageButton") then
@@ -216,12 +223,13 @@ _G["PVPParty"] = function(pokeout,party,var)
 			battle.Visible = true
 		end)
 		bigC(true,partyscreen)
-	else 
+	else
 		partyscreen.Bottom.BigCancel.Visible = false
 		partyscreen.Bottom.Cancel.Visible = false
 	end
 	partyscreen.Title.Visible = true
 	partyscreen.Bottom.dialog.Text = ""
+	partyscreen.Bottom.dialog.DropShadow.Text = partyscreen.Bottom.dialog.Text
 	partyscreen.Bottom.Visible = true
 	partyscreen.Visible = true
 	partyscreen.Bottom.dialog.Text = "Select a Pokemon to switch with "..pokeout.Name.."."
@@ -230,11 +238,8 @@ _G["PVPParty"] = function(pokeout,party,var)
 	partyscreen.Visible = false
 	battle.Visible = true
 	if pokemonswitch ~= nil then
-		--print(pokemonswitch.Name)
-		return pokemonswitch
+		return "Switch",pokemonswitch
 	else
 	end
 end
-
-
 

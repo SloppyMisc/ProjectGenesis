@@ -1,11 +1,14 @@
 local ticket = 0
 local tableo = {}
-local Pokemon = require(game.ReplicatedStorage.Information.Pokemon)
-local Moves = require(game.ReplicatedStorage.Information.Moves)
-local ItemList = require(game.ReplicatedStorage.Information.Items)
-local natureStats = require(game.ReplicatedStorage.Information.NatureStats)
-local Types = require(game.ReplicatedStorage.Types)
-_G.ExpTables = require(game.ReplicatedStorage.Information.ExpTables)
+local Pokemon = require(game.ReplicatedStorage:WaitForChild("Information"):WaitForChild("Pokemon"))
+local Moves = require(game.ReplicatedStorage:WaitForChild("Information"):WaitForChild("Moves"))
+local ItemList = require(game.ReplicatedStorage:WaitForChild("Information"):WaitForChild("Items"))
+local natureStats = require(game.ReplicatedStorage:WaitForChild("Information"):WaitForChild("NatureStats"))
+local Types = require(game.ReplicatedStorage:WaitForChild("Types"))
+_G.ExpTables = require(game.ReplicatedStorage:WaitForChild("Information"):WaitForChild("ExpTables"))
+
+local Remotes = require(game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Remotes"))
+
 local randomPokemon = {}
 local banlist = {
 	["Mewtwo"] = true,
@@ -72,9 +75,9 @@ for i,v in pairs(Pokemon) do
 end
 
 local battleO = {}
-game.ReplicatedStorage.REvents.PVP.BattleRequest.OnServerEvent:connect(function(client,challenger,gamemode)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleRequest.OnServerEvent:Connect(function(client,challenger,gamemode)
 	if challenger then
-		game.ReplicatedStorage.REvents.PVP.BattleRequest:FireClient(challenger,client,nil,gamemode)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleRequest:FireClient(challenger,client,nil,gamemode)
 	end
 end)
 
@@ -91,7 +94,7 @@ end)
 --C2 = 400
 --Round up
 
-game.ReplicatedStorage.REvents.PVP.RatedRequest.OnServerInvoke = function(client,challenger,gamemode)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.RatedRequest.OnServerInvoke = function(client,challenger,gamemode)
 	if challenger and (gamemode== "Rated" or gamemode == "Unrated") then
 		--print("Running")
 		local msg = nil
@@ -140,11 +143,11 @@ game.ReplicatedStorage.REvents.PVP.RatedRequest.OnServerInvoke = function(client
 		if gamemode == "Rated" and not challenger.Badges:FindFirstChild("8") then
 			msg = "Your opponent needs 8 badges to battle Rated"
 		end
-		if client.userId < 1 or challenger.userId < 1 then
+		if client.UserId < 1 or challenger.UserId < 1 then
 			msg = "Guests can't do Rated battles!"
 		end
 		if msg == nil then				
-			game.ReplicatedStorage.REvents.PVP.BattleRequest:FireClient(challenger,client,nil,gamemode)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleRequest:FireClient(challenger,client,nil,gamemode)
 			return true
 		else
 			return msg
@@ -152,14 +155,8 @@ game.ReplicatedStorage.REvents.PVP.RatedRequest.OnServerInvoke = function(client
 	end
 end
 
-function hash(num)
-	return (num+4)*8
-end
-function dehash(num)
-	return (num-32)/8
-end
 
-function game.ReplicatedStorage.REvents.PVP.PPChecker.OnServerInvoke(client,pokemon)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.PPChecker.OnServerInvoke = function(client,pokemon)
 	local t = {}
 	for i,v in ipairs(pokemon.Moves:GetChildren()) do
 		if v.PP.Value > 0 then
@@ -238,7 +235,7 @@ function convertPokemonToLv50(PokemonParty,Destination)
 			for _,prefix in ipairs(regStats) do
 				lvl50.Stats[prefix.."Stat"].Value = otherstatcalc(prefix,50,lvl50.IV[prefix.."IV"].Value,lvl50.EV[prefix.."EV"].Value,determinenature(prefix,lvl50.Nature.Value),lvl50)
 			end
-			lvl50.Experience.Value = hash(_G.ExpTables[Pokemon[lvl50.Name]["ExpType"].."Exp"](50))
+			lvl50.Experience.Value = _G.ExpTables[Pokemon[lvl50.Name]["ExpType"].."Exp"](50)
 			local prefix = "HP"
 			lvl50.Stats.HPStat.Value = HPcalc(50,lvl50.IV[prefix.."IV"].Value,lvl50.EV[prefix.."EV"].Value,lvl50)
 			lvl50.Lvl.Value = 50
@@ -304,16 +301,16 @@ function megaRandom(poke)
 	end
 end
 
-game.ReplicatedStorage.REvents.PVP.AnswerRequest.OnServerEvent:connect(function(client,Answer,playerAgainst,gamemode)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.AnswerRequest.OnServerEvent:Connect(function(client,Answer,playerAgainst,gamemode)
 	if Answer ~= "Accept" then
 		--print("RUNNING THIS")
-		game.ReplicatedStorage.REvents.PVP.BattleRequest:FireClient(playerAgainst,client,Answer)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleRequest:FireClient(playerAgainst,client,Answer)
 	elseif Answer == "Accept" then
 		ticket = ticket + 1
 		tableo[ticket] = {}
 		tableo[ticket][playerAgainst] = false
 		tableo[ticket][client] = false
-		local Folder = Instance.new("Folder",game.ReplicatedStorage.BattleStorage)
+		local Folder = Instance.new("Folder",game.ReplicatedStorage:WaitForChild("BattleStorage"))
 		Folder.Name = ticket
 		local Player1 = Instance.new("Folder",Folder)
 		Player1.Name = client.Name
@@ -356,8 +353,8 @@ game.ReplicatedStorage.REvents.PVP.AnswerRequest.OnServerEvent:connect(function(
 		paTime.Name = playerAgainst.Name.."Time"
 		clientTime.Value = 120
 		clientTime.Name = client.Name.."Time"
-		game.ReplicatedStorage.REvents.PVP.LeadSelection:FireClient(client,playerAgainst,Folder,ticket)
-		game.ReplicatedStorage.REvents.PVP.LeadSelection:FireClient(playerAgainst,client,Folder,ticket)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.LeadSelection:FireClient(client,playerAgainst,Folder,ticket)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.LeadSelection:FireClient(playerAgainst,client,Folder,ticket)
 
 	end
 end)
@@ -490,7 +487,7 @@ function checkWin(folder)
 	return true
 end
 
-game.ReplicatedStorage.REvents.PVP.ChangeLead.OnServerEvent:connect(function(client,ticket,newPoke,playerAgainst,folderO)
+Remotes.Server:Get("ChangeLead"):Connect(function(client,ticket,newPoke,playerAgainst)
 	battleO[client] = {
 		["Modifier"] = {
 			["Atk"] = 0,
@@ -527,24 +524,24 @@ game.ReplicatedStorage.REvents.PVP.ChangeLead.OnServerEvent:connect(function(cli
 		tableo[ticket][client] = true
 
 	end
-	findPokemon(newPoke,game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket):FindFirstChild(client.Name))
+	findPokemon(newPoke,game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket):FindFirstChild(client.Name))
 	if doubleCheck(tableo[ticket],client,playerAgainst) then
 		tableo[tonumber(ticket)][client] = false
 		tableo[tonumber(ticket)][playerAgainst] = false
-		game.ReplicatedStorage.REvents.PVP.Showdown:FireClient(client,ticket,nil,"Begin",playerAgainst,game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket))
-		game.ReplicatedStorage.REvents.PVP.Showdown:FireClient(playerAgainst,ticket,nil,"Begin",client,game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket))
-		CountDown(client,playerAgainst,game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket),battleO)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.Showdown:FireClient(client,ticket,nil,"Begin",playerAgainst,game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket))
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.Showdown:FireClient(playerAgainst,ticket,nil,"Begin",client,game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket))
+		CountDown(client,playerAgainst,game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket),battleO)
 	end
 end)
 
 
-game.ReplicatedStorage.REvents.PVP.Showdown.OnServerEvent:connect(function(client,ticket,canceller,action,playerAgainst)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.Showdown.OnServerEvent:Connect(function(client,ticket,canceller,action,playerAgainst)
 	tableo[ticket] = nil
-	if game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket) then
-		game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket):Destroy()
+	if game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket) then
+		game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket):Destroy()
 	end
-	game.ReplicatedStorage.REvents.PVP.Showdown:FireClient(client,ticket,client,"Cancel",playerAgainst)
-	game.ReplicatedStorage.REvents.PVP.Showdown:FireClient(playerAgainst,ticket,client,"Cancel",client)
+	game.ReplicatedStorage:WaitForChild("REvents").PVP.Showdown:FireClient(client,ticket,client,"Cancel",playerAgainst)
+	game.ReplicatedStorage:WaitForChild("REvents").PVP.Showdown:FireClient(playerAgainst,ticket,client,"Cancel",client)
 end)
 
 
@@ -687,7 +684,10 @@ local lowkicktable = {
 	[4] = {80,110.1,220.2},
 	[5] = {100,220.3,440.7},
 }
--- Weight function
+		--[[===============
+		Weight function
+			===============
+			--]]
 function weightdmg(pokemon)
 	for _,dmg in ipairs(lowkicktable) do	
 		if Pokemon[pokemon.Name]["Weight"] >= dmg[2] and Pokemon[pokemon.Name]["Weight"] <= dmg[3] then
@@ -1628,14 +1628,14 @@ end
 
 local ps = game:GetService("PointsService")
 function WinCheck(folder,opFolder,clientFolder,client,op)
-	local cid = client.userId
-	local oid = op.userId
+	local cid = client.UserId
+	local oid = op.UserId
 	local W = 1
 	local C1 = 50
 	local C2 = 400
 	if checkWin(opFolder) and checkWin(clientFolder) then
-		game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(client,"Tie",op)
-		game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(op,"Tie",client)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(client,"Tie",op)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(op,"Tie",client)
 		folder:Remove()
 	elseif checkWin(opFolder) then
 		if folder.Type.Value == "Rated" then
@@ -1645,13 +1645,13 @@ function WinCheck(folder,opFolder,clientFolder,client,op)
 			local BPGain = math.max(1,math.ceil(Change/3))
 			local messageText = client.Name.." beat "..op.Name.." in a Rated Battle and gained "..BPGain.." BP!"
 			local color = Color3.new(1,1,1)
-			game.ReplicatedStorage.ChatEvent:FireAllClients(messageText, "text", "server", color)
-			client.BP.Value = hash(dehash(client.BP.Value) + BPGain)
+			game.ReplicatedStorage:WaitForChild("ChatEvent"):FireAllClients(messageText, "text", "server", color)
+			client.BP.Value = client.BP.Value + BPGain
 			ps:AwardPoints(cid, math.ceil(Change))
 			ps:AwardPoints(oid, -math.ceil(Change))
 		end
-		game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(client,client.Name,op)
-		game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(op,client.Name,client)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(client,client.Name,op)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(op,client.Name,client)
 		folder:Remove()
 	elseif checkWin(clientFolder) then
 		if folder.Type.Value == "Rated" then
@@ -1663,13 +1663,13 @@ function WinCheck(folder,opFolder,clientFolder,client,op)
 			local BPGain = math.max(1,math.ceil(Change/3))
 			local messageText = op.Name.." beat "..client.Name.." in a Rated Battle and gained "..BPGain.." BP!"
 			local color = Color3.new(1,1,1)
-			game.ReplicatedStorage.ChatEvent:FireAllClients(messageText, "text", "server", color)
-			op.BP.Value = hash(dehash(op.BP.Value) + BPGain)
+			game.ReplicatedStorage:WaitForChild("ChatEvent"):FireAllClients(messageText, "text", "server", color)
+			op.BP.Value = op.BP.Value + BPGain
 			ps:AwardPoints(oid, math.ceil(Change))
 			ps:AwardPoints(cid, -math.ceil(Change))
 		end
-		game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(client,op.Name,op)
-		game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(op,op.Name,client)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(client,op.Name,op)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(op,op.Name,client)
 		folder:Remove()
 	end
 end
@@ -2067,22 +2067,22 @@ end
 
 function checkForFaint(first,second,client,op,folder,opFolder,clientFolder)
 	if first.Status.Value ~= "Faint" and second.Status.Value ~= "Faint" then
-		game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(client,op,folder)
-		game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(op,client,folder)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(client,op,folder)
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(op,client,folder)
 		CountDown(client,op,folder,battleO)
 	else 
 		local f,s = true,true
 		if first.Status.Value == "Faint" then
 			f = nil
 			spawn(function()
-				f = game.ReplicatedStorage.REvents.PVP.FaintAction:InvokeClient(game.Players:FindFirstChild(first.Parent.Name),op,folder[first.Parent.Name],getPokeOut(folder[first.Parent.Name]))
+				f = game.ReplicatedStorage:WaitForChild("REvents").PVP.FaintAction:InvokeClient(game.Players:FindFirstChild(first.Parent.Name),op,folder[first.Parent.Name],getPokeOut(folder[first.Parent.Name]))
 			end)
 		end
 		if second.Status.Value == "Faint" then
 			s = nil
 			spawn(function()
 
-				s =	game.ReplicatedStorage.REvents.PVP.FaintAction:InvokeClient(game.Players:FindFirstChild(second.Parent.Name),op,folder[second.Parent.Name],getPokeOut(folder[second.Parent.Name]))
+				s =	game.ReplicatedStorage:WaitForChild("REvents").PVP.FaintAction:InvokeClient(game.Players:FindFirstChild(second.Parent.Name),op,folder[second.Parent.Name],getPokeOut(folder[second.Parent.Name]))
 			end)
 		end
 		repeat task.wait()   until f ~= nil and s ~= nil 
@@ -2149,11 +2149,11 @@ function checkForFaint(first,second,client,op,folder,opFolder,clientFolder)
 
 
 
-			game.ReplicatedStorage.REvents.PVP.SwitchoutPokemon:FireClient(client,true,true,getPokeOut(opFolder),getPokeOut(clientFolder))
-			game.ReplicatedStorage.REvents.PVP.SwitchoutPokemon:FireClient(op,true,true,getPokeOut(clientFolder),getPokeOut(opFolder))
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.SwitchoutPokemon:FireClient(client,true,true,getPokeOut(opFolder),getPokeOut(clientFolder))
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.SwitchoutPokemon:FireClient(op,true,true,getPokeOut(clientFolder),getPokeOut(opFolder))
 			task.wait(3)
-			game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(client,op,folder)
-			game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(op,client,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(client,op,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(op,client,folder)
 
 
 		elseif type(f) == "userdata" then
@@ -2180,11 +2180,11 @@ function checkForFaint(first,second,client,op,folder,opFolder,clientFolder)
 			battleO[shortcut1]["DestinyBond"] = false
 			battleO[shortcut1]["BadlyPoison"] = .0625		
 			battleO[shortcut1]["LeechSeed"] = false
-			game.ReplicatedStorage.REvents.PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(first.Parent.Name),false,true,nil,f)
-			game.ReplicatedStorage.REvents.PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(second.Parent.Name),true,false,f)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(first.Parent.Name),false,true,nil,f)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(second.Parent.Name),true,false,f)
 			task.wait(2)
-			game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(client,op,folder)
-			game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(op,client,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(client,op,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(op,client,folder)
 		elseif type(s) == "userdata" then											
 			second.PartyPosition.Value = s.PartyPosition.Value
 			s.PartyPosition.Value = 1
@@ -2208,11 +2208,11 @@ function checkForFaint(first,second,client,op,folder,opFolder,clientFolder)
 			battleO[shortcut2]["DestinyBond"] = false
 			battleO[shortcut2]["BadlyPoison"] = .0625
 			battleO[shortcut2]["LeechSeed"] = false
-			game.ReplicatedStorage.REvents.PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(first.Parent.Name),true,false,s,nil)
-			game.ReplicatedStorage.REvents.PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(second.Parent.Name),false,true,nil,s)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(first.Parent.Name),true,false,s,nil)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.SwitchoutPokemon:FireClient(game.Players:FindFirstChild(second.Parent.Name),false,true,nil,s)
 			task.wait(2)
-			game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(client,op,folder)
-			game.ReplicatedStorage.REvents.PVP.RepeatTurn:FireClient(op,client,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(client,op,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn:FireClient(op,client,folder)
 		end
 
 	end	
@@ -2224,7 +2224,7 @@ function whichOneSwitch(t1,t2)
 		return t2,t1
 	end
 end
-game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(client,action,Type,folder,op,gonnaMega)
+Remotes.Server:Get("SendAction"):Connect(function(client,action,Type,folder,op,gonnaMega)
 	local ticket = folder.Name
 	--print(battleO[client]["Action"])
 	battleO[client]["Action"] = action
@@ -2326,8 +2326,8 @@ game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(cli
 			if second.Status.Value ~= "Faint" then
 				endOfTurn(second,turnTable,moves[getPokeOut(folder[second.Parent.Name])])
 			end
-			game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(client,op,turnTable,folder)
-			game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(op,client,turnTable,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(client,op,turnTable,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(op,client,turnTable,folder)
 			--									for i,v in pairs(turnTable) do
 			--									print(v)
 			--								end
@@ -2409,8 +2409,8 @@ game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(cli
 			if battleO[op]["Type"].Status.Value ~= "Faint" then
 				endOfTurn(battleO[op]["Type"],turnTable,battleO[op])
 			end
-			game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(client,op,turnTable,folder)
-			game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(op,client,turnTable,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(client,op,turnTable,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(op,client,turnTable,folder)
 			tableo[tonumber(ticket)][client] = false
 			tableo[tonumber(ticket)][op] = false
 			--								for i,v in pairs(turnTable) do
@@ -2520,8 +2520,8 @@ game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(cli
 				endOfTurn(getPokeOut(folder[second.Name]),turnTable,moves[getPokeOut(folder[second.Name])])
 			end
 
-			game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(client,op,turnTable,folder)
-			game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(op,client,turnTable,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(client,op,turnTable,folder)
+			game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(op,client,turnTable,folder)
 			tableo[tonumber(ticket)][client] = false
 			tableo[tonumber(ticket)][op] = false
 
@@ -2533,9 +2533,9 @@ game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(cli
 		elseif (battleO[client]["Action"] == "Run") or (battleO[op]["Action"] == "Run") then
 			--print(battleO[client]["Action"],battleO[op]["Action"])
 			if battleO[client]["Action"] ~= "Run" then
-				if game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket).Type.Value == "Rated" then
-					local cid = client.userId
-					local oid = op.userId
+				if game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket).Type.Value == "Rated" then
+					local cid = client.UserId
+					local oid = op.UserId
 					local W = 1
 					local C1 = 50
 					local C2 = 400
@@ -2547,17 +2547,17 @@ game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(cli
 					local BPGain = math.max(1,math.ceil(Change/3))
 					local messageText = client.Name.." beat "..op.Name.." in a Rated Battle and gained "..BPGain.."  BP!"
 					local color = Color3.new(1,1,1)
-					game.ReplicatedStorage.ChatEvent:FireAllClients(messageText, "text", "server", color)
-					client.BP.Value = hash(dehash(client.BP.Value) + BPGain)
+					game.ReplicatedStorage:WaitForChild("ChatEvent"):FireAllClients(messageText, "text", "server", color)
+					client.BP.Value = client.BP.Value + BPGain
 				end
 
 				table.insert(turnTable,op.Name.." forfeited the battle!")
-				game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(client,op,turnTable,folder)
-				game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(client,client.Name,op)
+				game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(client,op,turnTable,folder)
+				game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(client,client.Name,op)
 			elseif battleO[op]["Action"] ~= "Run" then
-				if game.ReplicatedStorage.BattleStorage:FindFirstChild(ticket).Type.Value == "Rated" then
-					local oid = client.userId
-					local cid = op.userId
+				if game.ReplicatedStorage:WaitForChild("BattleStorage"):FindFirstChild(ticket).Type.Value == "Rated" then
+					local oid = client.UserId
+					local cid = op.UserId
 					local W = 1
 					local C1 = 50
 					local C2 = 400
@@ -2567,14 +2567,14 @@ game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(cli
 					local BPGain = math.max(1,math.ceil(Change/3))
 					local messageText = op.Name.." beat "..client.Name.." in a Rated Battle and gained "..BPGain.."  BP!"
 					local color = Color3.new(1,1,1)
-					game.ReplicatedStorage.ChatEvent:FireAllClients(messageText, "text", "server", color)
-					op.BP.Value = hash(dehash(op.BP.Value) + BPGain)
+					game.ReplicatedStorage:WaitForChild("ChatEvent"):FireAllClients(messageText, "text", "server", color)
+					op.BP.Value = op.BP.Value + BPGain
 					ps:AwardPoints(cid, math.ceil(Change))
 					ps:AwardPoints(oid, -math.ceil(Change))
 				end
 				table.insert(turnTable,client.Name.." forfeited the battle!")
-				game.ReplicatedStorage.REvents.PVP.ShowTurn:FireClient(op,client,turnTable,folder)
-				game.ReplicatedStorage.REvents.PVP.BattleResult:FireClient(op,op.Name,client)
+				game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn:FireClient(op,client,turnTable,folder)
+				game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult:FireClient(op,op.Name,client)
 			else
 				print("Both players ran.")
 			end
@@ -2586,18 +2586,18 @@ game.ReplicatedStorage.REvents.PVP.SendAction.OnServerEvent:connect(function(cli
 end)
 
 
-game.Players.PlayerRemoving:connect(function(player)
-	local id = player.userId
+game.Players.PlayerRemoving:Connect(function(player)
+	local id = player.UserId
 	local pName = player.Name
-	for i,v in ipairs(game.ReplicatedStorage.BattleStorage:GetChildren()) do
+	for i,v in ipairs(game.ReplicatedStorage:WaitForChild("BattleStorage"):GetChildren()) do
 		if v:FindFirstChild(player.Name) then
 			spawn(function() 
 				for _,folder in ipairs(v:GetChildren()) do
 					if game.Players:FindFirstChild(folder.Name) then
-						game.ReplicatedStorage.REvents.PVP.PlayerLeft:FireClient(game.Players:FindFirstChild(folder.Name))
+						game.ReplicatedStorage:WaitForChild("REvents").PVP.PlayerLeft:FireClient(game.Players:FindFirstChild(folder.Name))
 						if v.Type.Value == "Rated" then
-							local cid = game.Players:FindFirstChild(folder.Name).userId
-							local oid = player.userId
+							local cid = game.Players:FindFirstChild(folder.Name).UserId
+							local oid = player.UserId
 							local W = 1
 							local C1 = 50
 							local C2 = 400
@@ -2607,8 +2607,8 @@ game.Players.PlayerRemoving:connect(function(player)
 							local BPGain = math.max(1,math.ceil(Change/3))
 							local messageText = folder.Name.." beat "..pName.." in a Rated Battle and gained "..BPGain.."  BP!"
 							local color = Color3.new(1,1,1)
-							game.ReplicatedStorage.ChatEvent:FireAllClients(messageText, "text", "server", color)
-							game.Players:FindFirstChild(folder.Name).BP.Value = hash(dehash(game.Players:FindFirstChild(folder.Name).BP.Value) + BPGain)
+							game.ReplicatedStorage:WaitForChild("ChatEvent"):FireAllClients(messageText, "text", "server", color)
+							game.Players:FindFirstChild(folder.Name).BP.Value = game.Players:FindFirstChild(folder.Name.BP.Value + BPGain)
 							ps:AwardPoints(cid, math.ceil(Change))
 							ps:AwardPoints(oid, -math.ceil(Change))
 

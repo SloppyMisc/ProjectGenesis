@@ -2,7 +2,7 @@ repeat task.wait() until game.Players.LocalPlayer
 local bgm = workspace:WaitForChild("BackgroundMusic")
 
 local p = game.Players.LocalPlayer
-local ItemList = require(game.ReplicatedStorage.Information.Items)
+local ItemList = require(game.ReplicatedStorage:WaitForChild("Information"):WaitForChild("Items"))
 local Main =  game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Main")
 local BattleRGui = Main:WaitForChild("BattleRequest")
 local leaveevent 
@@ -28,6 +28,8 @@ local StatusCond = {
 	["Faint"] = {"FNT",Color3.new(136/255,0,0)}
 }
 
+local Remotes = require(game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Remotes"))
+
 local function playBackgroundMusic()
 	if game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Main"):WaitForChild("MuteBGM").Text == "Mute BG Music" then
 		bgm.Volume = 0.3
@@ -36,7 +38,7 @@ end
 
 function fadeytext(text)
 	gui.MessageThing.Text = text
-	--	script.Parent.Main.BlackScreen.Visible = true
+	--	script.Parent:WaitForChild("Main").BlackScreen.Visible = true
 	for i = 1, 0, -.05 do
 		gui.MessageThing.TextTransparency = i
 		gui.MessageThing.TextStrokeTransparency = i  
@@ -56,7 +58,7 @@ end
 --
 --CancelEvent
 --
-game.ReplicatedStorage.REvents.PVP.AnswerRequest.OnClientEvent:connect(function(action1)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.AnswerRequest.OnClientEvent:Connect(function(action1)
 	if action1 == "Cancel" then
 		BattleRGui.Visible = false
 		Main.MessageThing.Text = "The other person canceled the battle."
@@ -71,15 +73,17 @@ end)
 --
 --InitialRequest
 --
-game.ReplicatedStorage.REvents.PVP.BattleRequest.OnClientEvent:connect(function(playerAgainst, argument2, gamemode)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleRequest.OnClientEvent:Connect(function(playerAgainst, argument2, gamemode)
 	if argument2 ~= nil then
 		BattleRGui.Visible = false
 		Main.BlackScreen.Visible = false
 		Main.Cancel.Visible = false
 		Main.PVPCancel.Visible = false --just in case I guess
 	end
-	if Main.BlackScreen.Visible == false and p.PlayerGui.DialogTalk.TalkB.Talk.Visible == false then
+	if Main.BlackScreen.Visible == false and p.PlayerGui:WaitForChild("DialogTalk").TalkB.Talk.Visible == false then
 		if argument2 == nil then
+			local accept
+			local decline
 			if accept then accept:disconnect() end if decline then decline:disconnect() end
 			Main.InteractBG.Visible = false
 			Main.BlackScreen.Visible = true
@@ -93,19 +97,19 @@ game.ReplicatedStorage.REvents.PVP.BattleRequest.OnClientEvent:connect(function(
 			BattleRGui.Frame.ImageLabel.Image = "http://www.roblox.com/Thumbs/Avatar.ashx?x=100&y=100&username="..playerAgainst.Name
 			BattleRGui.Message.Text = playerAgainst.Name.." wants to battle you! Game mode: "..gamemode
 			BattleRGui.Visible = true
-			accept = BattleRGui.Accept.MouseButton1Down:connect(function()
+			accept = BattleRGui.Accept.MouseButton1Down:Connect(function()
 				BattleRGui.Visible = false
 				if playerAgainst ~= nil and game.Players:FindFirstChild(playerAgainst.Name) then
-					game.ReplicatedStorage.REvents.PVP.AnswerRequest:FireServer("Accept",playerAgainst,gamemode)
+					game.ReplicatedStorage:WaitForChild("REvents").PVP.AnswerRequest:FireServer("Accept",playerAgainst,gamemode)
 				else
 					Main.BlackScreen.Visible = false
 				end
 			end)
-			decline = BattleRGui.Decline.MouseButton1Down:connect(function()
+			decline = BattleRGui.Decline.MouseButton1Down:Connect(function()
 				BattleRGui.Visible = false
 				Main.BlackScreen.Visible = p.InBattle.Value
 				if playerAgainst ~= nil then
-					game.ReplicatedStorage.REvents.PVP.AnswerRequest:FireServer("Decline",playerAgainst)
+					game.ReplicatedStorage:WaitForChild("REvents").PVP.AnswerRequest:FireServer("Decline",playerAgainst)
 				end
 			end)
 		end
@@ -130,7 +134,7 @@ end
 --
 
 
-game.ReplicatedStorage.REvents.PVP.LeadSelection.OnClientEvent:connect(function(playerAgainst,Folder,ticket)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.LeadSelection.OnClientEvent:Connect(function(playerAgainst,Folder,ticket)
 	toggleall(false)
 	local deb = false
 	didMega = false
@@ -141,7 +145,7 @@ game.ReplicatedStorage.REvents.PVP.LeadSelection.OnClientEvent:connect(function(
 	Main.MessageThing.TextTransparency = 1
 	Main.MessageThing.TextStrokeTransparency = 1
 	--if otherPlayer leaves
-	--		leaveevent = game.Players.ChildRemoved:connect(function(playerAgainst)
+	--		leaveevent = game.Players.ChildRemoved:Connect(function(playerAgainst)
 	--			if leaveevent and 	playerAgainst then
 	--					PvP.Visible = false
 	--				leaveevent:disconnect()
@@ -172,7 +176,7 @@ game.ReplicatedStorage.REvents.PVP.LeadSelection.OnClientEvent:connect(function(
 			fr.Visible = true
 			fr.Nickname.TextColor3 = Color3.new(1,1,1)
 			if getfenv()[fr.Name] then getfenv()[fr.Name]:disconnect() end
-			getfenv()[fr.Name] = fr.MouseButton1Down:connect(function()
+			getfenv()[fr.Name] = fr.MouseButton1Down:Connect(function()
 				if deb == false then
 					deb = true
 					fr.BackgroundColor3 = Color3.new(
@@ -182,7 +186,7 @@ game.ReplicatedStorage.REvents.PVP.LeadSelection.OnClientEvent:connect(function(
 					)
 					fr.Nickname.TextColor3 = Color3.new(1,0,0)
 					fr.Nickname.Text = "SELECTED"
-					game.ReplicatedStorage.REvents.PVP.ChangeLead:FireServer(ticket,v,playerAgainst)
+					Remotes.Client:Get("ChangeLead"):SendToServer(ticket,v,playerAgainst)
 				end
 			end)
 		end
@@ -190,8 +194,8 @@ game.ReplicatedStorage.REvents.PVP.LeadSelection.OnClientEvent:connect(function(
 	--Set Up Stuffz.
 	PvP.Visible = true
 	PvP.Cancel.Visible = true
-	PvP.Cancel.MouseButton1Down:connect(function()
-		game.ReplicatedStorage.REvents.PVP.Showdown:FireServer(ticket,p,"Cancel",playerAgainst)
+	PvP.Cancel.MouseButton1Down:Connect(function()
+		game.ReplicatedStorage:WaitForChild("REvents").PVP.Showdown:FireServer(ticket,p,"Cancel",playerAgainst)
 	end)
 end)
 
@@ -203,11 +207,11 @@ playerLeft = false
 
 
 
-game.ReplicatedStorage.REvents.PVP.Showdown.OnClientEvent:connect(function(ticket,canceller,action,opp,folderO)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.Showdown.OnClientEvent:Connect(function(ticket,canceller,action,opp,folderO)
 	playerLeft = false
 	if action == "Begin" then
 		PvP.Visible = false
-		local	Sound = p.PlayerGui.BattleSound
+		local	Sound = p.PlayerGui:WaitForChild("BattleSound")
 		Sound.SoundId = "http://www.roblox.com/asset/?id="..soundtable[math.random(1,#soundtable)]
 		bgm.Volume = 0	
 		Sound:Play()
@@ -240,11 +244,11 @@ game.ReplicatedStorage.REvents.PVP.Showdown.OnClientEvent:connect(function(ticke
 				if playerLeft == true then
 					PvP.Visible = false
 					fadeytext("Other player left the server.")
-					Main.Leaderboard.Visible = true
+					Main:WaitForChild("Leaderboard").Visible = true
 					Main.BlackScreen.Visible = false
 					showdown.Visible = false
 
-					p.PlayerGui.BattleSound:Stop()
+					p.PlayerGui:WaitForChild("BattleSound"):Stop()
 					playBackgroundMusic()			
 				else
 					battleFunc(opp,folderO)
@@ -291,7 +295,7 @@ actionbuttons = {
 }
 MovesBG = TextBox.MovesBG
 
-function scrolltext(gui,text,thing)
+function scrolltext(gui,text: string,thing)
 	for i = 1, #text, 2 do
 		gui.Text = string.sub(text,1,i)
 		if gui:FindFirstChild("dropshadow") then
@@ -318,8 +322,8 @@ partyb = {
 	["Healthy"] = "http://www.roblox.com/asset/?id=125060370",
 }
 
-game.ReplicatedStorage.REvents.PVP.PlayerLeft.OnClientEvent:connect(function()
-	local	Sound = p.PlayerGui.BattleSound
+game.ReplicatedStorage:WaitForChild("REvents").PVP.PlayerLeft.OnClientEvent:Connect(function()
+	local	Sound = p.PlayerGui:WaitForChild("BattleSound")
 	if #p.OppPokemon:GetChildren() == 0 then
 		Main.BlackScreen.Visible = false
 		playerLeft = true
@@ -327,7 +331,7 @@ game.ReplicatedStorage.REvents.PVP.PlayerLeft.OnClientEvent:connect(function()
 		gui.PvPBattle.Visible = false
 		PvP.Visible = false
 		fadeytext("Other player left the server.")
-		Main.Leaderboard.Visible = true
+		Main:WaitForChild("Leaderboard").Visible = true
 		Main.BlackScreen.Visible = false
 		Main.PVPParty.Visible = false
 		Sound:Stop()
@@ -502,15 +506,15 @@ end
 
 function battleFunc(opposingPlayer,folder)
 	if opposingPlayer ~= nil then
-		script.Parent.Main.Leaderboard.Visible = false
+		script.Parent:WaitForChild("Main"):WaitForChild("Leaderboard").Visible = false
 		--//variables
 		battleassociate = {}
 		showdown.Visible = false
 		Scene.Visible = false
-		--				folder[p.Name.."Time"].Changed:connect(function(val)
+		--				folder[p.Name.."Time"].Changed:Connect(function(val)
 		--				Scene.UserTime.Text =  TimeChecker(val)
 		--				end)
-		--				folder[opposingPlayer.Name.."Time"].Changed:connect(function(val)
+		--				folder[opposingPlayer.Name.."Time"].Changed:Connect(function(val)
 		--				Scene.OppTime.Text =  TimeChecker(val)
 		--				end)
 		--//Setting up teams above the Battle
@@ -605,7 +609,7 @@ function battleFunc(opposingPlayer,folder)
 end
 
 
-game.ReplicatedStorage.REvents.PVP.RepeatTurn.OnClientEvent:connect(function(opposingPlayer,folder)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.RepeatTurn.OnClientEvent:Connect(function(opposingPlayer,folder)
 	repeat task.wait() until turnGoingOn == false 
 	turn(opposingPlayer,folder,findPokemon(folder[p.Name]))
 
@@ -681,6 +685,7 @@ function turn(opposingPlayer,folder,currentPokemon)
 	scrolltext(ActualText, "What will "..nickname(currentPokemon).." do?")
 	local MoveButtons = {}
 	BH.MegaEvolve.Visible = false
+	local MegaEvent
 	if MegaEvent then MegaEvent:disconnect() end
 
 	if userMega ~= true and ItemList[currentPokemon.HeldItem.Value] and ItemList[currentPokemon.HeldItem.Value]["MegaEvolve"] and currentPokemon.Name == ItemList[currentPokemon.HeldItem.Value]["Requirement"] then
@@ -692,7 +697,7 @@ function turn(opposingPlayer,folder,currentPokemon)
 		BH.MegaEvolve.Title.Drop.Text = BH.MegaEvolve.Title.Text
 		BH.MegaEvolve.Visible = true
 		GonnaMega = false
-		MegaEvent = BH.MegaEvolve.MouseButton1Click:connect(function()
+		MegaEvent = BH.MegaEvolve.MouseButton1Click:Connect(function()
 			if userMega == false then
 				GonnaMega = true
 				BH.MegaEvolve.BackgroundColor3 = Color3.new(170/255, 1, 1)
@@ -717,7 +722,7 @@ function turn(opposingPlayer,folder,currentPokemon)
 		BH.MegaEvolve.Visible = false
 	end
 	if FightAction then FightAction:disconnect() end
-	FightAction = Fight.MouseButton1Down:connect(function()
+	FightAction = Fight.MouseButton1Down:Connect(function()
 		BH.MegaEvolve.Position = UDim2.new(0.25, 0,0, 0)
 		ActualText.Text = ""
 		ActualText.dropshadow.Text = ""
@@ -727,7 +732,7 @@ function turn(opposingPlayer,folder,currentPokemon)
 			Back.Visible = false
 			BH.MegaEvolve.Visible = false
 			scrolltext(ActualText,"No PP left for any move! Using Struggle...")
-			game.ReplicatedStorage.REvents.PVP.SendAction:FireServer("Move","Struggle",folder,opposingPlayer,GonnaMega)
+			Remotes.Client:Get("SendAction"):SendToServer("Move","Struggle",folder,opposingPlayer,GonnaMega)
 
 			scrolltext(ActualText,"Waiting for your opponent...")
 		else
@@ -750,12 +755,12 @@ function turn(opposingPlayer,folder,currentPokemon)
 						v.Type.Text = _G.Moves[moveName]["Type"]
 						v.Type.Visible = true
 					end
-					getfenv()[v.Name] = v.MouseButton1Down:connect(function()
+					getfenv()[v.Name] = v.MouseButton1Down:Connect(function()
 						if currentPokemon.Moves[v.MoveName.Text].PP.Value > 0 then
 							MovesBG.Visible = false
 							Back.Visible = false
 							BH.MegaEvolve.Visible = false
-							game.ReplicatedStorage.REvents.PVP.SendAction:FireServer("Move",v.MoveName.Text,folder,opposingPlayer,GonnaMega)
+							Remotes.Client:Get("SendAction"):SendToServer("Move",v.MoveName.Text,folder,opposingPlayer,GonnaMega)
 							scrolltext(ActualText,"Waiting for your opponent...")
 						elseif currentPokemon.Moves[v.MoveName.Text].PP.Value == 0 then
 							togglebuttons(actionbuttons,false)
@@ -779,7 +784,7 @@ function turn(opposingPlayer,folder,currentPokemon)
 	getMoves(currentPokemon)
 	togglebuttons(actionbuttons,true)
 	if bagAction then bagAction:disconnect() end
-	bagAction = Bag.MouseButton1Down:connect(function()
+	bagAction = Bag.MouseButton1Down:Connect(function()
 		BH.MegaEvolve.Visible = false
 		togglebuttons(actionbuttons,false)
 		scrolltext(ActualText, "That isn't the time for that!")
@@ -792,7 +797,7 @@ function turn(opposingPlayer,folder,currentPokemon)
 		end
 	end)
 	if BackButton then BackButton:disconnect()  end
-	BackButton = Back.MouseButton1Down:connect(function()
+	BackButton = Back.MouseButton1Down:Connect(function()
 		BH.MegaEvolve.Visible = false
 		BH.MegaEvolve.Position = UDim2.new(0.25, 0,1, 0)
 		Back.Visible = false
@@ -808,11 +813,11 @@ function turn(opposingPlayer,folder,currentPokemon)
 		end
 	end)
 	if switchAction then switchAction:disconnect() end
-	switchAction = Switch.MouseButton1Down:connect(function()
+	switchAction = Switch.MouseButton1Down:Connect(function()
 		local d = _G.PVPParty(currentPokemon,pFold)
 		repeat task.wait() until d ~= nil or switchAction == nil
 		if d ~= nil then
-			game.ReplicatedStorage.REvents.PVP.SendAction:FireServer("Switch",d,folder,opposingPlayer)
+			Remotes.Client:Get("SendAction"):SendToServer("Switch",d,folder,opposingPlayer,GonnaMega)
 			MovesBG.Visible = false
 			Back.Visible = false
 			togglebuttons(actionbuttons,false)
@@ -823,24 +828,24 @@ function turn(opposingPlayer,folder,currentPokemon)
 		end
 	end)
 	if runAction then runAction:disconnect() end
-	runAction = Run.MouseButton1Down:connect(function()
+	runAction = Run.MouseButton1Down:Connect(function()
 
 		BH.MegaEvolve.Visible = false
 
 		togglebuttons(actionbuttons,false)
-		game.ReplicatedStorage.REvents.PVP.SendAction:FireServer("Run",nil,folder,opposingPlayer)
+		Remotes.Client:Get("SendAction"):SendToServer("Run",nil,folder,opposingPlayer,GonnaMega)
 		scrolltext(ActualText,"You forfeit!")
 		task.wait(.2)
-		p.PlayerGui.BattleSound:Stop()
+		p.PlayerGui:WaitForChild("BattleSound"):Stop()
 		playBackgroundMusic()
 		Scene.Visible = false
-		Main.Leaderboard.Visible = true
+		Main:WaitForChild("Leaderboard").Visible = true
 		Main.BlackScreen.Visible = false
 	end)
 end
 
 --showcase Turn localside
-function condense(str)
+function condense(str: string)
 	for i = 1, #str do
 		if str:sub(i,i) == "&" then	
 			return i-1
@@ -848,7 +853,7 @@ function condense(str)
 	end
 end
 
-function gethp(str)
+function gethp(str: string)
 	local bfo, after
 	for i = 1, #str do
 		if str:sub(i,i) == "@" then
@@ -940,7 +945,7 @@ function sendOutPokemon(Poke,opposingPlayer,folder,number,turnTable)
 		Flash.Visible = false
 	end	
 end
-game.ReplicatedStorage.REvents.PVP.SwitchoutPokemon.OnClientEvent:connect(function(oppSend,youSend,oPoke,pPoke)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.SwitchoutPokemon.OnClientEvent:Connect(function(oppSend,youSend,oPoke,pPoke)
 	turnGoingOn = true
 	if oppSend == true and youSend == true then
 		ActualText.Text = ""	
@@ -1114,7 +1119,7 @@ function megaEvolve(box,megaEvolution,typ,pokemon)
 	end
 end
 
-function getRidOfNick(s)
+function getRidOfNick(s: string)
 	local one,two,three
 	local firstpart,secondpart,thirdpart 
 	for i = 1, #s do
@@ -1152,7 +1157,7 @@ function getRidOfNick(s)
 	local finalString = firstpart..secondpart..thirdpart
 	return finalString
 end
-game.ReplicatedStorage.REvents.PVP.ShowTurn.OnClientEvent:connect(function(opposingPlayer,turnTable,folder)
+game.ReplicatedStorage:WaitForChild("REvents").PVP.ShowTurn.OnClientEvent:Connect(function(opposingPlayer,turnTable,folder)
 	local oppFold = folder[opposingPlayer.Name]
 	local pFold = folder[p.Name]
 	BH.MegaEvolve.Visible = false
@@ -1266,8 +1271,8 @@ function wipeOpp()
 	end
 	_G.InWild = false
 end
-game.ReplicatedStorage.REvents.PVP.BattleResult.OnClientEvent:connect(function(result,op)
-	local	Sound = p.PlayerGui.BattleSound
+game.ReplicatedStorage:WaitForChild("REvents").PVP.BattleResult.OnClientEvent:Connect(function(result,op)
+	local	Sound = p.PlayerGui:WaitForChild("BattleSound")
 	repeat task.wait() until turnGoingOn == false
 	Sound:Stop()
 	playBackgroundMusic()
@@ -1290,7 +1295,7 @@ game.ReplicatedStorage.REvents.PVP.BattleResult.OnClientEvent:connect(function(r
 		Sound:Stop()
 		playBackgroundMusic()	
 		showdown.Visible = false
-		script.Parent.Main.BlackScreen.Visible = false
+		script.Parent:WaitForChild("Main").BlackScreen.Visible = false
 		showdown.Player1.Winner.Visible = false
 		showdown.Player2.Winner.Visible = false
 	elseif result == p.Name then
@@ -1310,7 +1315,7 @@ game.ReplicatedStorage.REvents.PVP.BattleResult.OnClientEvent:connect(function(r
 		Sound:Stop()
 		playBackgroundMusic()
 		showdown.Visible = false
-		script.Parent.Main.BlackScreen.Visible = false
+		script.Parent:WaitForChild("Main").BlackScreen.Visible = false
 		showdown.Player1.Winner.Visible = false
 	elseif result == op.Name then
 		Scene.Visible = false		
@@ -1330,8 +1335,8 @@ game.ReplicatedStorage.REvents.PVP.BattleResult.OnClientEvent:connect(function(r
 		showdown.Visible = false
 		Scene.Visible = false		
 		showdown.Player2.Winner.Visible = false
-		script.Parent.Main.BlackScreen.Visible = false
+		script.Parent:WaitForChild("Main").BlackScreen.Visible = false
 	end
 	wipeOpp()
-	script.Parent.Main.Leaderboard.Visible = true
+	script.Parent:WaitForChild("Main"):WaitForChild("Leaderboard").Visible = true
 end)

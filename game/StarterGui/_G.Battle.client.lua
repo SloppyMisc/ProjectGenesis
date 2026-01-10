@@ -157,7 +157,7 @@ function getHiddenPower(poke)
 	local Atk = val["AtkIV"].Value%2==1 and 2 or 0
 	local Def = val["DefIV"].Value%2==1 and 4 or 0
 	local Speed = val["SpeedIV"].Value%2==1 and 8 or 0
-	local SpA = val["SpAIV"].Value%2==1 and 16 or 0
+	local SpA = val["SpAIV"].Value%2==1 and 16 or 0 
 	local SpD = val["SpDIV"].Value%2==1 and 32 or 0
 	local Num = math.floor((Hp+Atk+Def+SpA+SpD+Speed)*15/63)
 	return (HiddenPowerTypes[Num]) or "Dark"
@@ -1027,14 +1027,14 @@ function yesno(movelearnt,pokie)
 	local hold = battle.YesNoHolder
 	local swagmove = movelearnt
 	local deletevent 
-	YES = hold.Yes.MouseButton1Click:connect(function()
+	YES = hold.Yes.MouseButton1Click:Connect(function()
 		changevisible(battle.YesNoHolder,"TextButton",false)
 		scrolltext(dialog,"Which move should "..nickname(pokie).." forget?")
 		moveappear(pokie,movelist,true)
 		for i,v in ipairs(movelist:GetChildren()) do
 			if v:IsA("TextButton") then
 
-				getfenv()["Delete"..v.Name] = v.MouseButton1Click:connect(function()
+				getfenv()["Delete"..v.Name] = v.MouseButton1Click:Connect(function()
 					movelist.Visible = false
 					scrolltext(dialog,nickname(pokie).." forgot "..v.MoveName.Text.."...")
 					scrolltext(dialog,nickname(pokie).." learned "..swagmove.."!")
@@ -1050,7 +1050,7 @@ function yesno(movelearnt,pokie)
 			end
 		end
 	end)
-	NO = hold.No.MouseButton1Click:connect(function()
+	NO = hold.No.MouseButton1Click:Connect(function()
 		changevisible(battle.YesNoHolder,"TextButton",false)
 		scrolltext(dialog,nickname(pokie).." did not learn "..swagmove..".")
 		deletevent = true
@@ -1119,7 +1119,7 @@ function levelup(POKIE)
 	scrolltext(dialog,nickname(POKIE).." grew to Lv. "..POKIE.Lvl.Value.."!")
 	battle.LevelUpBG.Visible = true
 	local useraction = false
-	nextevent = battle.LevelUpBG.Next.MouseButton1Click:connect(function()
+	nextevent = battle.LevelUpBG.Next.MouseButton1Click:Connect(function()
 		useraction = not useraction end)
 	repeat task.wait() until useraction == true
 	for i,v in ipairs(POKIE.Stats:GetChildren()) do
@@ -1211,7 +1211,7 @@ function EvolvingTime(pokecfg)
 		task.wait(.6)
 		evolvescreen.YesNoHolder.Yes.Visible = true
 		evolvescreen.YesNoHolder.No.Visible = true	
-		yesevolution = evolvescreen.YesNoHolder.Yes.MouseButton1Click:connect(function()	
+		yesevolution = evolvescreen.YesNoHolder.Yes.MouseButton1Click:Connect(function()	
 			evolvescreen.YesNoHolder.Yes.Visible = false
 			evolvescreen.YesNoHolder.No.Visible = false
 			local evolvedPoke = Battle:EvolveCheck(pokecfg,pokecfg.Lvl.Value)
@@ -1251,14 +1251,14 @@ function EvolvingTime(pokecfg)
 								evolvescreen.YesNoHolder.No.Visible = true
 								if yesmove then yesmove:disconnect()end
 								if nomove then nomove:disconnect() end
-								yesmove = evolvescreen.YesNoHolder.Yes.MouseButton1Click:connect(function()
+								yesmove = evolvescreen.YesNoHolder.Yes.MouseButton1Click:Connect(function()
 
 									evolvescreen.YesNoHolder.Yes.Visible = false
 									evolvescreen.YesNoHolder.No.Visible = false
 									moveevolve(pokecfg)
 									for _,v in ipairs(evolvescreen.EvolveDialog.MovesBG:GetChildren()) do
 										if v:IsA("TextButton") then
-											getfenv()["DeleteDerp"..v.Name] = v.MouseButton1Click:connect(function()
+											getfenv()["DeleteDerp"..v.Name] = v.MouseButton1Click:Connect(function()
 												changevisible(evolvescreen.EvolveDialog.MovesBG,"TextButton",false)
 												scrolltext(evolvescreen.EvolveDialog.Speak,pokecfg.Name.." forgot "..v.MoveName.Text.."...")
 												scrolltext(evolvescreen.EvolveDialog.Speak,pokecfg.Name.." learned "..newmove.."!")
@@ -1274,7 +1274,7 @@ function EvolvingTime(pokecfg)
 
 									--eaction = true
 								end)
-								nomove = evolvescreen.YesNoHolder.No.MouseButton1Click:connect(function()
+								nomove = evolvescreen.YesNoHolder.No.MouseButton1Click:Connect(function()
 									evolvescreen.YesNoHolder.Yes.Visible = false
 									evolvescreen.YesNoHolder.No.Visible = false
 									scrolltext(evolvescreen.EvolveDialog.Speak,pokecfg.Name.." did not learn "..newmove..".")
@@ -1295,7 +1295,7 @@ function EvolvingTime(pokecfg)
 				evolvescreen.Visible = false
 			end
 		end)
-		noevolution =  evolvescreen.YesNoHolder.No.MouseButton1Click:connect(function()
+		noevolution =  evolvescreen.YesNoHolder.No.MouseButton1Click:Connect(function()
 			evolvescreen.YesNoHolder.Yes.Visible = false
 			evolvescreen.YesNoHolder.No.Visible = false
 			scrolltext(evolvescreen.EvolveDialog.Speak,pokecfg.Name.." didn't evolve.")
@@ -1410,7 +1410,7 @@ end
 function moveappear(yourpoke,movelist,thing)
 	if thing == nil then
 		battle.ButtonHolder.Back.Visible=true
-		battle.ButtonHolder.Back.MouseButton1Click:connect(function()
+		battle.ButtonHolder.Back.MouseButton1Click:Connect(function()
 			buttonholder.MegaEvolve.Position = UDim2.new(0.25, 0,1, 0)
 			battle.ButtonHolder.Back.Visible = false
 			movelist.Visible = false
@@ -3113,7 +3113,7 @@ function pickmove(poke1,movelist)
 	for i,v in ipairs(movelist:GetChildren()) do
 		if v:IsA("TextButton") then
 			num = num + 1
-			--											getfenv()["Enter"..num] = v.MouseEnter:connect(function()
+			--											getfenv()["Enter"..num] = v.MouseEnter:Connect(function()
 			--												movelist.MoveInfo.PP.Text = "PP: "..poke1["Moves"][v.Text]["PP"].Value.."/".._G.Moves[v.Text]["PP"]
 			--											end)
 										--[[
@@ -3121,7 +3121,7 @@ function pickmove(poke1,movelist)
 										Messy Events, but reduces lag and future problems by disconnecting them.
 										==================================
 										--]]
-			getfenv()["blah"..num] = v.MouseButton1Click:connect(function()
+			getfenv()["blah"..num] = v.MouseButton1Click:Connect(function()
 				battle.ButtonHolder.Back.Visible = false
 				if v.CrossHolder.Visible == false and poke1["Moves"][v.MoveName.Text]["PP"].Value > 0 then
 					movechosen = v.MoveName.Text
@@ -3697,12 +3697,12 @@ function turn(dialog,fight,sprite,name)
 			task.wait(.5)
 			changevisible(battle.YesNoHolder,"TextButton",true)
 			if yes then yes:disconnect() end if no then no:disconnect() end
-			yes = battle.YesNoHolder.Yes.MouseButton1Click:connect(function()
+			yes = battle.YesNoHolder.Yes.MouseButton1Click:Connect(function()
 				battle.Visible = false
 				typeaction,action = _G.PartyBattle(yourpokeout,battle)
 				--if yes then yes:disconnect() end if no then no:disconnect() end
 			end)
-			no = battle.YesNoHolder.No.MouseButton1Click:connect(function()
+			no = battle.YesNoHolder.No.MouseButton1Click:Connect(function()
 				typeaction = false
 				--if yes then yes:disconnect() end if no then no:disconnect() end
 			end)
@@ -3757,7 +3757,7 @@ function turn(dialog,fight,sprite,name)
 		buttonholder.MegaEvolve.Title.Drop.Text = buttonholder.MegaEvolve.Title.Text
 		buttonholder.MegaEvolve.Visible = true
 		GonnaMega = false
-		MegaEvent = buttonholder.MegaEvolve.MouseButton1Click:connect(function()
+		MegaEvent = buttonholder.MegaEvolve.MouseButton1Click:Connect(function()
 			if GonnaMega == false then
 				GonnaMega = true
 				buttonholder.MegaEvolve.BackgroundColor3 = Color3.new(170/255, 1, 1)
@@ -3793,7 +3793,7 @@ function turn(dialog,fight,sprite,name)
 	--===========================
 	--"Fight Event" (Picking Moves)
 	--===========================
-	fightevent = fight.MouseButton1Click:connect(function()
+	fightevent = fight.MouseButton1Click:Connect(function()
 		if runvar == false then
 			dialog.Text = ""
 			dropshadowdialog.Text = ""
@@ -3812,7 +3812,7 @@ function turn(dialog,fight,sprite,name)
 	--==============================
 	--"Bag Pokemon Event"
 	--==============================
-	bagevent = bag.MouseButton1Click:connect(function()
+	bagevent = bag.MouseButton1Click:Connect(function()
 		if runvar == false and zol ~= true then
 			typeaction,action,itemused = _G["ItemBattle"]()
 		elseif zol == true then
@@ -3826,7 +3826,7 @@ function turn(dialog,fight,sprite,name)
 	--==============================
 	--"Switch Pokemon Event"
 	--==============================
-	partyevent = party.MouseButton1Click:connect(function()
+	partyevent = party.MouseButton1Click:Connect(function()
 		if runvar == false then
 			battle.Visible = false
 			typeaction,action = _G.PartyBattle(yourpokeout,battle)
@@ -3835,7 +3835,7 @@ function turn(dialog,fight,sprite,name)
 	--===============================
 	--Run Pokmeon
 	--===============================
-	runevent = run.MouseButton1Click:connect(function()
+	runevent = run.MouseButton1Click:Connect(function()
 		if runvar == false and zol ~= true then
 			runvar = true
 			if prefix ~= "wild" then
@@ -4267,7 +4267,7 @@ pokeballanim = battle.PokeballAnim
 soundeffect = p.PlayerGui.SoundEffect
 prefix = ""
 buttonholder = battle.ButtonHolder
-mouse.KeyDown:connect(function(key)
+mouse.KeyDown:Connect(function(key)
 	if key == "q" and pressedq == nil and scrollytext == true then
 		pressedq = true
 	end
@@ -4370,7 +4370,6 @@ _G["BattleInitiate"] =
 		if inbattle == false then
 			inbattle = true
 			script.Parent:WaitForChild("Main"):WaitForChild("Leaderboard").Visible = false
-
 
 			guiReplace()
 			zol = nil
